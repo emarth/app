@@ -2,7 +2,7 @@
 
 ## Langages utilisés
 
-    Deux langages sont utilisés pour réaliser l'application. L'application elle même est une application Scala. Cet un langage similaire au Java qui tourne sur le JVM mais ajoute plusieurs composantes fonctionelles. Pour la base de donnée, on a utilisé le PostgreSQL.
+Deux langages sont utilisés pour réaliser l'application. L'application elle même est une application Scala. Cet un langage similaire au Java qui tourne sur le JVM mais ajoute plusieurs composantes fonctionelles. Pour la base de donnée, on a utilisé le PostgreSQL.
 
 ## Guide d'installation
 
