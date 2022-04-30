@@ -1,39 +1,40 @@
 package com.example
 
-import javax.swing.{JFrame, JPanel, JButton, JTextField}
+import javax.swing.{JFrame, JPanel, JButton, JTextField, JLabel}
 import java.awt.event.ActionListener
-import java.sql.DriverManager
-import java.sql.Connection
 import java.awt.event.ActionEvent
-import java.sql.SQLException
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
+import java.awt.FlowLayout
+import javax.swing.BoxLayout
+import java.awt.Dimension
 
-class LoginPanel(succesFunc : () => Unit) extends JPanel {
+class LoginPanel(succesFunc : (String) => Unit) extends JPanel {
 
 	// variables and values
   val button = new JButton("Login")
-  val username = new JTextField("Enter username")
-  val password = new JTextField("Enter password")
+
+	val userLabel = new JLabel("Username: ")
+  val userPanel = new JPanel()
+	val usertf = new JTextField()
+	usertf.setPreferredSize(new Dimension(100, 20))
+
+  val passLabel = new JLabel("Password: ")
+  val passPanel = new JPanel()
+	val passtf = new JTextField()
+	passtf.setPreferredSize(new Dimension(100, 20))
+
+	userPanel.add(userLabel)
+	userPanel.add(usertf)
+	passPanel.add(passLabel)
+	passPanel.add(passtf)
   
 	// check database func
 
 	def authenaticate(username: String, password: String): Boolean = {
-		val url = "jdbc:postgresql://localhost:5432/postgres"
-		val user = "postgres"
-		val pass = "password"
-
-		var conn: Connection = null
-		try {
-			conn = DriverManager.getConnection(url, user, pass)
-		} catch {
-			case e: SQLException => {e.printStackTrace(); false}
-		}
-
-		val stm = conn.createStatement()
 		val query = "select true where exists (select * from users where username = \'" + username +
 		"\' and pass_word = \'" + password + "\')"
-		val result = stm.executeQuery(query)
+		val result = Queries.queryDatabase(query)
 		// checks if u + p combo exists in users
 		result.next()
 	}
@@ -42,15 +43,15 @@ class LoginPanel(succesFunc : () => Unit) extends JPanel {
 
   class LoginAL extends ActionListener {
       def actionPerformed(x: ActionEvent): Unit = {
-				if(authenaticate(username.getText(), password.getText())) {succesFunc()}
+				if(authenaticate(usertf.getText(), passtf.getText())) {succesFunc(usertf.getText())}
 			}
   }
   button.addActionListener(new LoginAL())
 
-	// panel
+	// main panel
 
-	this.add(username)
-	this.add(password)
+	this.add(userPanel)
+	this.add(passPanel)
 	this.add(button)
 
 }
