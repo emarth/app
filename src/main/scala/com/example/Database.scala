@@ -4,6 +4,8 @@ import java.sql.DriverManager
 import java.sql.Connection
 import java.sql.SQLException
 import java.sql.ResultSet
+import javax.swing.{JPanel, JFrame, JLabel, BoxLayout}
+import java.awt.{Dimension, Color}
 
 object Queries {
 
@@ -45,4 +47,36 @@ object Queries {
         arr
     }
 
+}
+
+class DisplayTuple(primaryKeyName : String, primaryKey : String, relationName : String) extends JPanel {
+    this.setPreferredSize(new Dimension(500,100))
+    this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS))
+    def addEntry(attributes : List[String], format : List[String] => String, label : String) : Unit = {
+        val res = Queries.queryDatabase("SELECT * FROM " + relationName + " WHERE (" + primaryKeyName + " = " + primaryKey + ");")
+        res.next()
+        val value = format((attributes.map(res.getString)))
+        res.close()
+
+        this.add(new JLabel(label + ": " + value))
+    }
+
+    def addEntry(attribute : String, format : (String) => String, label : String) : Unit = {
+        val res = Queries.queryDatabase("SELECT * FROM " + relationName + " WHERE (" + primaryKeyName + " = " + primaryKey + ");")
+        res.next()
+        val value = format(res.getString(attribute))
+        res.close()
+
+        this.add(new JLabel(label + ": " + value))
+    }
+}
+
+object Tester extends App {
+    val frame = new JFrame()
+    val dt = new DisplayTuple("personne_id", "1", "persons")
+    dt.addEntry(List("prenom", "nom"), (l: List[String]) => (l.map((s:String) => s + " ")).addString(new StringBuilder()).toString(), "Name")
+    dt.addEntry("sexe", (s: String) => s, "Sexe")
+    frame.add(dt)
+    frame.setVisible(true)
+    frame.setSize(1000,1000)
 }
