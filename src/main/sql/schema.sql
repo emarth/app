@@ -59,3 +59,90 @@ create table Employees (
     foreign key (succursale_id) references Succursales(succursale_id)
 );
 
+create table Avis (
+    avis_id serial,
+    employee_id integer,
+    commentaire varchar(100),
+    primary key (avis_id),
+    foreign key (employee_id) references Employees(employee_id)
+);
+
+create table Frais (
+    frais_id serial,
+    fraisCode integer,
+    procedureCode integer,
+    frais integer,
+    primary key (frais_id),
+);
+
+/* this one might need modifications*/
+create table Procedurerdv (
+    procedure_id serial,
+    procedureCode integer,
+    description_ varchar(50),
+    patient_id integer,
+    dateRDV date,
+    quantiteProcedure integer,
+    dentImplique varchar(100),
+    primary key(procedure_id),
+    foreign key (patient_id) references Patients(patient_id)
+);
+
+create table Traitement (
+    traitement_id serial,
+    typeRDV varchar(20),
+    typeTraitements varchar(20),
+    dents varchar(20),
+    commentaire varchar(100),
+    symptomes varchar(50),
+    medicaments varchar(20),
+    primary key (traitement_id)
+);
+
+
+create table Reclamation (
+    reclamation_id serial,
+    facture_id integer
+    primary key (reclamation_id),
+    foreign key (facture_id) references Facture(facture_id)   
+);
+
+create table Facture (
+    facture_id serial,
+    dateEmission date,
+    patient_id integer,
+    fraisPatient integer,
+    fraisAssurance integer,
+    fraisTotaux integer,
+    reduction integer,
+    assurancePatient varchar(20),
+    primary key (facture_id),
+    foreign key (patient_id) references Patients(patient_id)
+);
+
+create table Paiement (
+    paiement_id serial,
+    facture_id integer,
+    reclamation_id integer,
+    paiementType varchar(20),
+    primary key (paiement_id),
+    foreign key (facture_id) references Facture(facture_id),
+    foreign key (reclamation_id) references Reclamation(reclamation_id)
+);
+
+create table Rendezvous (
+    rdv_id serial,
+    daterdv date,
+    patient_id integer,
+    employee_id integer,
+    heureDebut integer,
+    heureFin integer,
+    typeRDV varchar(20),
+    statut varchar(20),
+    chambreAttribue integer,
+    primary key (rdv_id),
+    foreign key (patient_id) references Patients(patient_id),
+    foreign key (employee_id) references Employees(employee_id)
+);
+
+
