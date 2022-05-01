@@ -4,8 +4,8 @@ import java.sql.DriverManager
 import java.sql.Connection
 import java.sql.SQLException
 import java.sql.ResultSet
-import javax.swing.{JPanel, JFrame, JLabel, BoxLayout}
-import java.awt.{Dimension, Color}
+import javax.swing.{JPanel, JFrame, JLabel, BoxLayout, JList, JScrollPane}
+import java.awt.{Dimension, Color, BorderLayout}
 
 object Queries {
 
@@ -73,10 +73,17 @@ class DisplayTuple(primaryKeyName : String, primaryKey : String, relationName : 
 
 object Tester extends App {
     val frame = new JFrame()
+    val otherPane = new JPanel()
+    var test = Array[String]()
+    Range(0,100).foreach((i : Int) => test = test :+ i.toString())
+    val list = new JList(test)
+    otherPane.add(new JScrollPane(list))
     val dt = new DisplayTuple("personne_id", "1", "persons")
     dt.addEntry(List("prenom", "nom"), (l: List[String]) => (l.map((s:String) => s + " ")).addString(new StringBuilder()).toString(), "Name")
     dt.addEntry("sexe", (s: String) => s, "Sexe")
-    frame.add(dt)
+    frame.add(dt, BorderLayout.EAST)
+    frame.add(otherPane, BorderLayout.WEST)
+    frame.remove(otherPane)
     frame.setVisible(true)
     frame.setSize(1000,1000)
 }
