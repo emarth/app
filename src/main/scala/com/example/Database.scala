@@ -7,11 +7,9 @@ import java.sql.ResultSet
 import javax.swing.{JPanel, JFrame, JLabel, BoxLayout, JList, JScrollPane}
 import java.awt.{Dimension, Color, BorderLayout}
 
-object Queries {
+class Queries(user : String, pass : String) {
 
     val url = "jdbc:postgresql://localhost:5432/appdb"
-    val user = "postgres"
-    val pass = "password"
 
     var conn: Connection = null
     try {
@@ -50,10 +48,9 @@ object Queries {
 }
 
 class DisplayTuple(primaryKeyName : String, primaryKey : String, relationName : String) extends JPanel {
-    this.setPreferredSize(new Dimension(500,100))
     this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS))
     def addEntry(attributes : List[String], format : List[String] => String, label : String) : Unit = {
-        val res = Queries.queryDatabase("SELECT * FROM " + relationName + " WHERE (" + primaryKeyName + " = " + primaryKey + ");")
+        val res = Main.queries.queryDatabase("SELECT * FROM " + relationName + " WHERE (" + primaryKeyName + " = " + primaryKey + ");")
         res.next()
         val value = format((attributes.map(res.getString)))
         res.close()
@@ -62,7 +59,7 @@ class DisplayTuple(primaryKeyName : String, primaryKey : String, relationName : 
     }
 
     def addEntry(attribute : String, format : (String) => String, label : String) : Unit = {
-        val res = Queries.queryDatabase("SELECT * FROM " + relationName + " WHERE (" + primaryKeyName + " = " + primaryKey + ");")
+        val res = Main.queries.queryDatabase("SELECT * FROM " + relationName + " WHERE (" + primaryKeyName + " = " + primaryKey + ");")
         res.next()
         val value = format(res.getString(attribute))
         res.close()
@@ -71,19 +68,8 @@ class DisplayTuple(primaryKeyName : String, primaryKey : String, relationName : 
     }
 }
 
-object Tester extends App {
-    val frame = new JFrame()
-    val otherPane = new JPanel()
-    var test = Array[String]()
-    Range(0,100).foreach((i : Int) => test = test :+ i.toString())
-    val list = new JList(test)
-    otherPane.add(new JScrollPane(list))
-    val dt = new DisplayTuple("personne_id", "1", "persons")
-    dt.addEntry(List("prenom", "nom"), (l: List[String]) => (l.map((s:String) => s + " ")).addString(new StringBuilder()).toString(), "Name")
-    dt.addEntry("sexe", (s: String) => s, "Sexe")
-    frame.add(dt, BorderLayout.EAST)
-    frame.add(otherPane, BorderLayout.WEST)
-    frame.remove(otherPane)
-    frame.setVisible(true)
-    frame.setSize(1000,1000)
+class EditPanel(primaryKeyName : String, primaryKey : String, relationName : String) extends JPanel {
+    this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS))
+
+    
 }

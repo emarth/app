@@ -4,14 +4,17 @@ import javax.swing.{JPanel, JFrame, WindowConstants, JLabel, JComboBox}
 import java.awt.CardLayout
 import java.awt.event.ActionListener
 import java.awt.event.ActionEvent
+import java.awt.BorderLayout
 
 object Main extends App {
 
     var username = ""
+    var queries = new Queries(args(0), args(1))
     val cl = new CardLayout()
     val modeCL = new CardLayout()
     val mainPanel = new JPanel(cl)
     val nextPanel = new JPanel()
+    nextPanel.setLayout(new BorderLayout())
     val modePanel = new JPanel(modeCL)
     var modeEnvs = List[JPanel]()
     var modeSelect = new JComboBox[String]()
@@ -21,10 +24,11 @@ object Main extends App {
     {
         cl.show(mainPanel, "next")
         username = user
-        val res = Queries.queryDatabase("select prenom, nom from (users natural join persons) where (username = \'" + user + "\' )")
+        val res = queries.queryDatabase("select prenom, nom from (users natural join persons) where (username = \'" + user + "\' )")
         res.next()
         val name = res.getString("prenom") + " " + res.getString("nom")
-        nextPanel.add(new JLabel("Bienvenue " + name + "! Quelle mode voulez-vous utiliser?     "))
+        val selectpanel = new JPanel()
+        selectpanel.add(new JLabel("Bienvenue " + name + "! Quelle mode voulez-vous utiliser?     "), BorderLayout.NORTH)
 
         val modes = ModeUtils.getModes(username)
         val modesArray : Array[String] = Array.ofDim[String](modes.size)
@@ -33,14 +37,15 @@ object Main extends App {
         modeSelect.addActionListener(new ModeSelectAL)
 
         modesArray.foreach((mode: String) => {
-            val mp = new ModePanel(mode, username)
+            val mp = ModeUtils.makeModePanel(mode, modes(mode))
             modeEnvs = modeEnvs :+ mp
             modeCL.addLayoutComponent(mp, mode)
         })
 
         modeEnvs.foreach(modePanel.add)
-        nextPanel.add(modeSelect)
-        nextPanel.add(modePanel)
+        selectpanel.add(modeSelect)
+        nextPanel.add(selectpanel, BorderLayout.NORTH)
+        nextPanel.add(modePanel, BorderLayout.SOUTH)
     })
 
     mainPanel.add(login)

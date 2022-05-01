@@ -34,7 +34,7 @@ class LoginPanel(succesFunc : (String) => Unit) extends JPanel {
 	def authenaticate(username: String, password: String): Boolean = {
 		val query = "select true where exists (select * from users where username = \'" + username +
 		"\' and pass_word = \'" + password + "\')"
-		val result = Queries.queryDatabase(query)
+		val result = Main.queries.queryDatabase(query)
 		// checks if u + p combo exists in users
 		result.next()
 	}

@@ -145,4 +145,10 @@ create table Rendezvous (
     foreign key (employee_id) references Employees(employee_id)
 );
 
-
+create table estPatientde (
+    patient_id integer,
+    employee_id integer,
+    foreign key (patient_id) references Patients(patient_id),
+    foreign key (employee_id) references Employees(paiement_id),
+    constraint employee_id check (exists (select * from Emloyees E where (E.employee_id = employee_id AND (E.emploi_role = 'dentiste' or E.emploi_role = 'hygéniste'))))
+)
