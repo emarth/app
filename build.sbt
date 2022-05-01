@@ -1,4 +1,4 @@
-name := "akka-quickstart-scala"
+name := "database-app"
 
 version := "1.0"
 
@@ -15,6 +15,7 @@ fork := true
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor-typed" % akkaVersion,
   "ch.qos.logback" % "logback-classic" % "1.2.3",
+  "org.postgresql" % "postgresql" % "42.3.4",
   "com.typesafe.akka" %% "akka-actor-testkit-typed" % akkaVersion % Test,
   "org.scalatest" %% "scalatest" % "3.1.0" % Test
 )
