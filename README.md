@@ -4,24 +4,23 @@
 
 Deux langages sont utilisés pour réaliser l'application. L'application elle même est une application Scala. Cet un langage similaire au Java qui tourne sur le JVM mais ajoute plusieurs composantes fonctionelles. Pour la base de donnée, on a utilisé le PostgreSQL.
 
+## DLL utilisés
+
+Les librairies standards du JRE et le pilote JDBC pour PostgreSQL.
+
 ## Guide d'installation
 
 ### Prérequis(version temporaire pour le développement de l'application)
 
-- Scala Build Tool (sbt)
-- Scala 2.18+
+- [Scala Build Tool 1.6.2 (sbt)](https://www.scala-sbt.org/)
+- [Scala 2.13+](https://www.scala-lang.org/download/)
 - JDK 8+
-
-Vous pouvez trouver les détails [ici](https://scalameta.org/metals/docs/editors/vscode)
-
-Cette extension de Visual Studio Code est utile pour lancer l'application.
-
-Pour le driver JBDC, vous pouvez télécharger un `.jar` [ici](https://jdbc.postgresql.org/download.html). Veuillez utiliser la version 4.2 la plus récente.
+- PostgreSQL
 
 ### Installation
 
-Clonez le repositore. Lorsque vous ouvriez le directoire, l'extension devrait vouz demander de "Import build". Ceci créera plusieurs directoire et fichier nécessaire pour lancer, debogger et compiler l'application. Ajouter l'endroit où est sauvegardé le `.jar` du driver JDBC sur votre système à `"classpath"` de `.bloop/app/app.json`.
+`PATHtoAPP` représente dorénavant le directiore dans lequel se trouve `/app/`. Entrez dans la console PSQL et connectez vous aux serveur localhost défaut. Créez une base de données avec `CREATE DATABASE appdb`. Connectez vous à cette base de donées et entrez la commande `\i PATHtoAPP/src/main/sql/schema.sql` suivi de `\i PATHtoAPP/src/main/sql/seed.sql`.
 
-Dans la ligne de commande, créer une base de donnée `appdb` sur le localhost de psql. Modifier le user et mot de passe dans `Database.scala` (je le changera peut-être à des ressources XML pour éviter des conflits) comme il le faut pour connecter sur votre machine (ceci est temporaire pour créer l'application. On peut migrer à une base de donnée permanente lorsqu'on aura fini l'application).
+Entrer dans la ligne de commande, naviguez à `app`. Utilisez la commande `sbt` pour ouvrir la console sbt. Par la suite, utilisez la commande `run com.example.Main [user] [pass]` où `[user]` est l'utilisateur local pour PostgreSQL et `[pass]` c'est le mot de passe. L'application devrait s'éxecuter.
 
-Éxecutez `schema.sql` et `seed.sql` dans la ligne de commande psql avec `\i`. Vous pouvez maintenant lancer `Main.scala`.
+Si vous avez des problèmes, envoyez un email à [emart133@uottawa.ca](mailto:emart133@uottawa.ca).

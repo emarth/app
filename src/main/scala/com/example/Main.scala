@@ -24,7 +24,7 @@ object Main extends App {
     {
         cl.show(mainPanel, "next")
         username = user
-        val res = queries.queryDatabase("select prenom, nom from (users natural join persons) where (username = \'" + user + "\' )")
+        val res = queries.queryDatabase("select prenom, nom from (dentist.users natural join dentist.persons) where (username = \'" + user + "\' )")
         res.next()
         val name = res.getString("prenom") + " " + res.getString("nom")
         val selectpanel = new JPanel()
