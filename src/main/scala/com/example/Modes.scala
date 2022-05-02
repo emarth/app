@@ -12,6 +12,7 @@ import java.awt.Color
 import java.awt.event.ActionListener
 import java.awt.event.ActionEvent
 import java.sql.ResultSet
+import javax.swing.border.Border
 
 object ModeUtils {
     
@@ -216,9 +217,109 @@ class SecretaryMode() extends JPanel {
 }
 
 class PatientMode(patientID : String) extends JPanel {
-    this.add(new JLabel("Patient mode under construction"))
+    val res  = Main.queries.queryDatabase(
+    "select rdv_id, daterdv from dentist.Rendezvous where (patient_ID = \'" + patientID + "\') order by daterdv")
+    val dates = Main.queries.extractColumnStr(res, "daterdv")
+    res.beforeFirst()
+    val rdv_ids = Main.queries.extractColumnStr(res, "rdv_id")
+    res.close()
+
+    this.setLayout(new BorderLayout())
+
+    val rdvList = new JList(dates)
+    val scroll = new JScrollPane(rdvList)
+    scroll.setPreferredSize(new Dimension(150,600))
+    this.add(scroll, BorderLayout.WEST)
+    this.setPreferredSize(new Dimension(950,700))
+
+     // displaypanel
+
+    val dPanel = new JPanel()
+    dPanel.setPreferredSize(new Dimension(800, 600))
+    this.add(dPanel, BorderLayout.EAST)
+
+    // create command panel
+    //val btnPanel = new JPanel()
+    val viewBtn = new JButton("Voir information")
+    viewBtn.addActionListener(new ActionListener() {
+        def actionPerformed(x: ActionEvent): Unit = {
+            if (rdvList.getSelectedIndex() != -1) {
+            val dt = new DisplayTuple("rdv_id", rdv_ids(rdvList.getSelectedIndex()), "Dentist.Rendezvous")
+            dt.addEntry("daterdv", (s:String) => s, "Date")
+            dt.addEntry("heureDebut", (s:String) => s + ":00", "Débute à")
+            dt.addEntry("heureFin", (s:String) => s + ":00", "Finit à")
+            dt.addEntry("typerdv", (s:String) => s, "Type")
+            dt.addEntry("statut", (s:String) => s, "Statut")
+            dt.addEntry("chambreAttribue", (s:String) => s, "Chambre attribuée")
+            dPanel.remove(content)
+            content = dt
+            dPanel.add(content)
+            dPanel.updateUI()
+        }
+        }
+    })
+
+    // dpanel contents
+    var content = new JPanel()
+
+    this.add(viewBtn, BorderLayout.SOUTH)
 }
 
 class DentistMode(employeeID : String) extends JPanel {
-    this.add(new JLabel("Dentist mode under construction"))
+    // create patient list
+    val res  = Main.queries.queryDatabase("select * from (dentist.persons natural join dentist.patients)" +
+    " where exists (select * from dentist.estPatientde E where (E.patient_id = patient_id AND E.employee_id = " + employeeID + ")) order by nom;")
+    val noms = Main.queries.extractColumnStr(res, "nom")
+    res.beforeFirst()
+    val prenoms = Main.queries.extractColumnStr(res, "prenom")
+    res.beforeFirst()
+    val patient_ids = Main.queries.extractColumnStr(res, "patient_id")
+    res.close()
+
+    this.setLayout(new BorderLayout())
+
+    var patientListValues = Array[String]()
+    Range(0, noms.length).foreach((i :Int) => {patientListValues = patientListValues :+ (noms(i) + ", " + prenoms(i))})
+    val patientList = new JList(patientListValues)
+    val scroll = new JScrollPane(patientList)
+    scroll.setPreferredSize(new Dimension(150,600))
+    this.add(scroll, BorderLayout.WEST)
+    this.setPreferredSize(new Dimension(950,700))
+
+    val viewBtn = new JButton("Voir information")
+    viewBtn.addActionListener(new ActionListener() {
+        def actionPerformed(x: ActionEvent): Unit = {
+            if (patientList.getSelectedIndex() != -1) {
+
+            val pid = patient_ids(patientList.getSelectedIndex())
+            val rs = Main.queries.queryDatabase("SELECT procedure_id FROM Dentist.Procedurerdv " +
+            "WHERE patient_id = " + pid + ";")
+            rs.next()
+            val proID = rs.getString(1); rs.close()
+
+            val dt = new DisplayTuple("procedure_id", proID, "Dentist.Procedurerdv")
+            dt.addEntry("procedureCode", (s:String) => s, "Procedure Code")
+            dt.addEntry("description_", (s:String) => s , "Description")
+            dt.addEntry("daterdv", (s:String) => s, "Date")
+            dt.addEntry("quantiteProcedure", (s:String) => s, "Quantité")
+            dt.addEntry("dentImplique", (s:String) => s, "Dents impliquées")
+            dPanel.remove(content)
+            content = dt
+            dPanel.add(content)
+            dPanel.updateUI()
+        }
+        }
+    })
+
+
+     // displaypanel
+
+    val dPanel = new JPanel()
+    dPanel.setPreferredSize(new Dimension(800, 600))
+    this.add(dPanel, BorderLayout.EAST)
+
+    // dpanel contents
+    var content = new JPanel()
+
+    this.add(viewBtn, BorderLayout.SOUTH)
 }
