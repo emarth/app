@@ -17,7 +17,7 @@ object ModeUtils {
     
     val getModes = (username : String) => {
         var res = Main.queries.queryDatabase(
-        "select patient_id, prenom from (persons natural join patients)" +
+        "select patient_id, prenom from (dentist.persons natural join dentist.patients)" +
         "where (username = \'" + username + "\');"
         )
         val patientModes = Main.queries.extractColumnStr(res, "prenom")
@@ -25,7 +25,7 @@ object ModeUtils {
         val patientIds = Main.queries.extractColumnInt(res, "patient_id")
 
         res = Main.queries.queryDatabase(
-            "select employee_id, emploi_role from employees where (username = \'" +
+            "select employee_id, emploi_role from dentist.employees where (username = \'" +
             username + "\');"
         )
 
@@ -52,10 +52,9 @@ object ModeUtils {
 
 }
 
-
 class SecretaryMode() extends JPanel {
     // create patient list
-    val res  = Main.queries.queryDatabase("select * from (persons natural join patients) order by nom")
+    val res  = Main.queries.queryDatabase("select * from (dentist.persons natural join dentist.patients) order by nom")
     val noms = Main.queries.extractColumnStr(res, "nom")
     res.beforeFirst()
     val prenoms = Main.queries.extractColumnStr(res, "prenom")
@@ -84,7 +83,8 @@ class SecretaryMode() extends JPanel {
     val viewBtn = new JButton("Voir information")
     viewBtn.addActionListener(new ActionListener() {
         def actionPerformed(x: ActionEvent): Unit = {
-            val dt = new DisplayTuple("patient_id", patient_ids(patientList.getSelectedIndex()), "(persons natural join patients)")
+            if (patientList.getSelectedIndex() != -1) {
+            val dt = new DisplayTuple("patient_id", patient_ids(patientList.getSelectedIndex()), "(dentist.persons natural join dentist.patients)")
             dt.addEntry(List("prenom", "nom"), (l: List[String]) => (l.map((s:String) => s + " ")).addString(new StringBuilder()).toString(), "Name")
             dt.addEntry("sexe", (s: String) => s, "Sexe")
             dt.addEntry("ssn", (s: String) => s, "SSN")
@@ -93,7 +93,7 @@ class SecretaryMode() extends JPanel {
             dt.addEntry("numeroTel", (s: String) => s, "Numéro de téléphone")
             dt.addEntry("email", (s: String) => s, "Adresse e-mail")
             dt.addEntry("adresse_id", (s : String) => {
-                val addr : ResultSet = Main.queries.queryDatabase("select * from adresses where ( adresse_id = " + s + ");")
+                val addr : ResultSet = Main.queries.queryDatabase("select * from dentist.adresses where ( adresse_id = " + s + ");")
                 addr.next()
                 val str = addr.getString("numero") + " " + addr.getString("rue") + ", " + addr.getString("ville") + ", " + addr.getString("province")
                 addr.close()
@@ -104,9 +104,107 @@ class SecretaryMode() extends JPanel {
             dPanel.add(content)
             dPanel.updateUI()
         }
+        }
     })
     val editBtn = new JButton("Modifier information")
+    editBtn.addActionListener(new ActionListener() {
+        def actionPerformed(x: ActionEvent): Unit = {
+            if (patientList.getSelectedIndex() != -1) {
+            // get personne_id
+            val patID = patient_ids(patientList.getSelectedIndex())
+            var rs = Main.queries.queryDatabase(
+            "SELECT personne_id FROM (Dentist.Persons NATURAL JOIN Dentist.Patients) WHERE (patient_id = " + patID + ");"
+            )
+            rs.next(); val perID = rs.getString("personne_id"); rs.close()
+            
+            // create entry panel
+            val ep = new EditPanel("personne_id", perID, "Dentist.Persons")
+            ep.addEntryText("prenom", (s: String) => "\'" + s + "\'", "Prénom", (s: String) => s)
+            ep.addEntryText("nom", (s: String) => "\'" + s + "\'", "Nom", (s: String) => s)
+            ep.addEntryText("sexe", (s: String) => "\'" + s + "\'", "Sexe", (s: String) => s)
+            ep.addEntryText("ssn", (s: String) =>  s, "SSN", (s: String) => s)
+            ep.addEntryText("dateNaissance", (s: String) => "\'" + s + "\'", "Date de naissance", (s: String) => s)
+            ep.addEntryText("assurance", (s: String) =>  "\'" + s + "\'", "Fournisseur d'assurance", (s: String) => s)
+            ep.addEntryText("email", (s: String) =>  "\'" + s + "\'", "Adresse e-mail", (s: String) => s)
+            ep.addEntryText("numeroTel", (s: String) =>  "\'" + s + "\'", "Numéro de téléphone", (s: String) => s)
+
+            rs = Main.queries.queryDatabase("SELECT numero, rue, ville, province, adresse_id FROM Dentist.Adresses")
+            val numeros = Main.queries.extractColumnStr(rs, "numero"); rs.beforeFirst()
+            val rues = Main.queries.extractColumnStr(rs, "rue"); rs.beforeFirst()
+            val villes = Main.queries.extractColumnStr(rs, "ville"); rs.beforeFirst()
+            val provinces = Main.queries.extractColumnStr(rs, "province"); rs.beforeFirst()
+            val ids = Main.queries.extractColumnStr(rs, "adresse_id")
+            rs.close()
+
+            val chs = new Array[String](numeros.length)
+            val chVs = new Array[String](numeros.length)
+            Range(0, numeros.length).foreach((i: Int) => {
+                chs(i) = numeros(i) + " " + rues(i) + ", " + villes(i) + ", " + provinces(i)
+                chVs(i) = ids(i)
+            })
+
+            ep.addEntrySelect("adresse_id", (s: String) => s, "Adresse", chs, chVs)
+
+            dPanel.remove(content)
+            content = ep
+            dPanel.add(content)
+            dPanel.updateUI()
+        }
+        }
+    })
     val bookBtn = new JButton("Fixer rendez-vous")
+    bookBtn.addActionListener(new ActionListener() {
+        def actionPerformed(x: ActionEvent): Unit = {
+            if (patientList.getSelectedIndex() != -1) {
+            
+            val pid = patient_ids(patientList.getSelectedIndex())
+
+            var rs = Main.queries.queryDatabase("SELECT MAX(rdv_id) FROM Dentist.Rendezvous")
+            rs.next()
+            var rdvid = rs.getInt(1) + 1
+            Main.queries.updateDatabase(List("INSERT INTO Dentist.Rendezvous (patient_id, statut) VALUES(" + pid + " , \'Pending\');"))
+            
+            // create entry panel
+            val ep = new EditPanel("rdv_id", rdvid.toString, "Dentist.Rendezvous")
+            ep.addEntryText("daterdv", (s: String) => "\'" + s + "\'", "Date", (s: String) => s)
+            ep.addEntryText("heuredebut", (s: String) =>  s , "Débute à", (s: String) => s)
+            ep.addEntryText("heurefin", (s: String) => s, "Finit à", (s: String) => s)
+            ep.addEntryText("typerdv", (s: String) =>  "\'" + s + "\'", "Type", (s: String) => s)
+            ep.addEntryText("chambreAttribue", (s: String) => s, "Chambre attribuée", (s: String) => s)
+
+            rs = Main.queries.queryDatabase(
+            "SELECT prenom, nom, username FROM (Dentist.Persons P NATURAL JOIN Dentist.Users U)" + 
+            " WHERE EXISTS (SELECT * FROM Dentist.Employees E WHERE (U.username = E.username AND E.emploi_role = \'Dentist\'))"
+            )
+            val nom = Main.queries.extractColumnStr(rs, "nom"); rs.beforeFirst()
+            val prenom = Main.queries.extractColumnStr(rs, "prenom"); rs.beforeFirst()
+            var ids = Main.queries.extractColumnStr(rs, "username")
+            rs.close()
+
+            ids = ids.map((user: String) => {
+                rs = Main.queries.queryDatabase("SELECT employee_id FROM Dentist.Employees WHERE (username = \'" + user + "\');")
+                rs.next()
+                rs.getString(1)
+            })
+
+            rs.close()
+
+            val chs = new Array[String](nom.length)
+            val chVs = new Array[String](nom.length)
+            Range(0, nom.length).foreach((i: Int) => {
+                chs(i) = prenom(i) + " " + nom(i)
+                chVs(i) = ids(i)
+            })
+
+            ep.addEntrySelect("employee_id", (s: String) => s, "Dentiste", chs, chVs)
+
+            dPanel.remove(content)
+            content = ep
+            dPanel.add(content)
+            dPanel.updateUI()
+        }
+        }
+    })
     btnPanel.setLayout(new GridLayout(1,3))
     btnPanel.add(viewBtn); btnPanel.add(editBtn); btnPanel.add(bookBtn)
 
@@ -115,9 +213,6 @@ class SecretaryMode() extends JPanel {
 
     this.add(btnPanel, BorderLayout.SOUTH)
 
-    class BookPanel(patientID : String) extends JPanel {
-
-    }
 }
 
 class PatientMode(patientID : String) extends JPanel {

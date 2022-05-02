@@ -21,9 +21,8 @@ create table Persons (
     dateNaissance date NOT NULL,
     assurance varchar(20) NOT NULL,
     email varchar(20) NOT NULL,
-    numeroTel integer NOT NULL,
+    numeroTel varchar(20) NOT NULL,
     adresse_id integer NOT NULL,
-    CONSTRAINT checkNumeroTel CHECK(numeroTel>2000000000 AND numeroTel<9000000000),
     primary key(personne_id),
     foreign key(adresse_id) references Adresses(adresse_id)
 );
@@ -78,7 +77,7 @@ create table Frais (
     fraisCode integer NOT NULL,
     procedureCode integer NOT NULL,
     frais integer NOT NULL,
-    primary key (frais_id),
+    primary key (frais_id)
 );
 
 /* this one might need modifications*/
@@ -105,14 +104,6 @@ create table Traitement (
     primary key (traitement_id)
 );
 
-
-create table Reclamation (
-    reclamation_id serial,
-    facture_id integer NOT NULL,
-    primary key (reclamation_id),
-    foreign key (facture_id) references Facture(facture_id)   
-);
-
 create table Facture (
     facture_id serial,
     dateEmission date NOT NULL,
@@ -127,6 +118,13 @@ create table Facture (
     foreign key (patient_id) references Patients(patient_id)
 );
 
+create table Reclamation (
+    reclamation_id serial,
+    facture_id integer NOT NULL,
+    primary key (reclamation_id),
+    foreign key (facture_id) references Facture(facture_id)   
+);
+
 create table Paiement (
     paiement_id serial,
     facture_id integer NOT NULL,
@@ -139,16 +137,16 @@ create table Paiement (
 
 create table Rendezvous (
     rdv_id serial,
-    daterdv date NOT NULL,
-    patient_id integer NOT NULL,
-    employee_id integer NOT NULL,
-    heureDebut integer NOT NULL,
-    heureFin integer NOT NULL,
-    typeRDV varchar(20) NOT NULL,
-    statut varchar(20) NOT NULL,
-    chambreAttribue integer NOT NULL,
+    daterdv date,
+    patient_id integer,
+    employee_id integer,
+    heureDebut integer,
+    heureFin integer,
+    typeRDV varchar(20),
+    statut varchar(20),
+    chambreAttribue integer,
     CONSTRAINT checkHeure CHECK(heureDebut<heureFin),
-    CONSTRAINT checkHeureNum CHECK(heureDebut>0 AND heureDebut<24 AND heureFin>0 AND heureFin<24)
+    CONSTRAINT checkHeureNum CHECK(heureDebut>0 AND heureDebut<24 AND heureFin>0 AND heureFin<24),
     primary key (rdv_id),
     foreign key (patient_id) references Patients(patient_id),
     foreign key (employee_id) references Employees(employee_id)
@@ -158,6 +156,5 @@ create table estPatientde (
     patient_id integer,
     employee_id integer,
     foreign key (patient_id) references Patients(patient_id),
-    foreign key (employee_id) references Employees(paiement_id),
-    constraint employee_id check (exists (select * from Emloyees E where (E.employee_id = employee_id AND (E.emploi_role = 'dentiste' or E.emploi_role = 'hygéniste'))))
-)
+    foreign key (employee_id) references Employees(employee_id)
+);
